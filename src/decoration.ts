@@ -7,6 +7,7 @@ export function lintToDecorations(
     settings: Pick<Settings, 'tslint.decorations.lineLintIssues'>,
     data: LintResult | undefined | null
 ): TextDocumentDecoration[] {
+    console.log('lintResult', data);
     if (!data) {
         return []
     }
@@ -30,16 +31,14 @@ export function lintToDecorations(
             ),
             isWholeLine: !startPos || !endPos,
         }
-        if (settings['codecov.decorations.lineLintIssues']) {
+        if (settings['tslint.decorations.lineLintIssues']) {
             decoration.backgroundColor = lineColor(failure, 0.7, 0.25)
+            decoration.after = {
+                backgroundColor: lineColor(failure, 0.7, 1),
+                color: lineColor(failure, 0.25, 1),
+                ...lineText(failure),
+            }
         }
-        // if (settings['codecov.decorations.lineHitCounts']) {
-        //     decoration.after = {
-        //         backgroundColor: lineColor(coverage, 0.7, 1),
-        //         color: lineColor(coverage, 0.25, 1),
-        //         ...lineText(coverage),
-        //     }
-        // }
         decorations.push(decoration)
     }
     return decorations
@@ -61,14 +60,14 @@ function lineColor(
     return ''
 }
 
-// function lineText(
-//     failure: RuleFailure[]
-// ): { contentText?: string; hoverMessage?: string } {
-//     if (failure === null) {
-//         return {}
-//     }
-//     return {
-//         contentText: ``,
-//         hoverMessage: ``
-//     }
-// }
+function lineText(
+    failure: RuleFailure
+): { contentText?: string; hoverMessage?: string } {
+    if (failure === null) {
+        return {}
+    }
+    return {
+        contentText: ``,
+        hoverMessage: failure.getFailure()
+    }
+}

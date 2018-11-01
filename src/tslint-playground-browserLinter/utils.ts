@@ -25,6 +25,11 @@ import { IOptions } from 'tslint/lib/language/rule/rule'
 import { AbstractRule } from 'tslint/lib/rules'
 import { EXCLUDED_RULES, RULESETS } from './config'
 
+// TODO: importing the configs directly results in a blank bundle why??
+// import * as all_config from 'tslint/lib/configs/all'
+// import * as latest_config from 'tslint/lib/configs/latest'
+// import * as recommended_config from 'tslint/lib/configs/recommended'
+
 interface IBrowserRule {
     Rule: AbstractRule
 }
@@ -63,6 +68,23 @@ const getRule = (
 }
 
 /**
+ * Convert all config types to the new style of config
+ * @param oldConfig the old configuration object
+ */
+const convertToNewConfig = (oldConfig: IOptions | any[] | boolean): object => {
+    if (oldConfig instanceof Array) {
+        return {
+            ruleArguments: oldConfig.slice(1),
+        }
+    } else if (isBoolean(oldConfig)) {
+        return {
+            ruleArguments: [],
+        }
+    }
+    return oldConfig
+}
+
+/**
  * Get rule objects for rule set, and override them with custom rules object.
  * @param extendsString the rule set to extend (undefined, recommended etc)
  * @param rulesObject override for custom rules
@@ -72,10 +94,26 @@ export const getRules = async (
     rulesObject: Map<string, Partial<IOptions>>
 ): Promise<AbstractRule[]> => {
     // Get the rule list
-    const extendedRulesSet: Map<string, Partial<IOptions>> =
-        extendsString !== undefined
-            ? (await import(`tslint/lib/configs/${extendsString}`)).rules
-            : {}
+    // TODO: resolve dynamic import issue with TypeError: Module scripts are not supported on WorkerGlobalScope yet (see https://crbug.com/680046)
+    // const extendedRulesSet: Map<string, Partial<IOptions>> =
+    //     extendsString !== undefined
+    //         ? (await import(`tslint/lib/configs/${extendsString}`)).wrules
+    //         : {}
+
+    // Workaround for dynamic import issue above
+    const extendedRulesSet: any = {}
+
+    // switch (extendsString) {
+    //     case 'all':
+    //         extendedRulesSet = all_config.rules
+    //         break
+    //     case 'latest':
+    //         extendedRulesSet = latest_config.rules
+    //         break
+    //     case 'recommended':
+    //         extendedRulesSet = recommended_config.rules
+    //         break
+    // }
 
     // Combine with rule overrides to get the full set
     const ruleSet = { ...extendedRulesSet, ...rulesObject }
@@ -126,23 +164,6 @@ export const getRuleSet = (configuration: IConfigurationFile) => {
 
 function isBoolean(bool: any): bool is boolean {
     return typeof bool === typeof true
-}
-
-/**
- * Convert all config types to the new style of config
- * @param oldConfig the old configuration object
- */
-const convertToNewConfig = (oldConfig: IOptions | any[] | boolean): object => {
-    if (oldConfig instanceof Array) {
-        return {
-            ruleArguments: oldConfig.slice(1),
-        }
-    } else if (isBoolean(oldConfig)) {
-        return {
-            ruleArguments: [],
-        }
-    }
-    return oldConfig
 }
 
 /**

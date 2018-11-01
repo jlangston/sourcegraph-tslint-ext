@@ -40,7 +40,7 @@ export class BrowserLinter {
         const enabledRules = await getRules(ruleSet, configuration.rules)
         const failures = this.getAllFailures(sourceFile, enabledRules)
         if (failures.length === 0) {
-            return
+            return undefined
         }
 
         // add rule severity to failures
