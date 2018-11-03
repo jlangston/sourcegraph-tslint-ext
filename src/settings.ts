@@ -7,14 +7,18 @@
 export interface Settings {
     ['tslint.toggleLintIssueDisplay']: boolean
     ['tslint.decorations.lineLintIssues']: boolean
+    ['tslint.langserver.address']: string
 }
 
 /** Returns a copy of the extension settings with values normalized and defaults applied. */
 export function resolveSettings(raw: Partial<Settings>): Settings {
     return {
-        ['tslint.toggleLintIssueDisplay']: raw['tslint.toggleLintIssueDisplay'] !== false,
+        ['tslint.toggleLintIssueDisplay']:
+            raw['tslint.toggleLintIssueDisplay'] !== false,
         ['tslint.decorations.lineLintIssues']: !!raw[
             'tslint.decorations.lineLintIssues'
-        ]
+        ],
+        ['tslint.langserver.address']:
+            raw['tslint.langserver.address'] || 'ws://localhost:2345',
     }
 }
