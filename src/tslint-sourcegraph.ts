@@ -34,7 +34,6 @@ export function activate(): void {
                 const configuration = await getLinterConfiguration(
                     editor.document.uri
                 )
-                console.log('Configuration', configuration)
                 if (!configuration) {
                     return
                 }
@@ -47,7 +46,6 @@ export function activate(): void {
                         'Content-Type': 'application/json; charset=utf-8',
                     },
                     body: JSON.stringify({
-                        method: 'lint',
                         doc: {
                             text: editor.document.text,
                             uri: editor.document.uri,
@@ -57,7 +55,6 @@ export function activate(): void {
                 })
 
                 const resp = await fetch(request)
-                debugger
                 const lintResult = (await resp.json()) as LintResult
                 editor.setDecorations(
                     null,
@@ -72,5 +69,3 @@ export function activate(): void {
     }
     setTimeout(afterActivate, 0)
 }
-
-// Learn what else is possible by visiting the [Sourcegraph extension documentation](https://github.com/sourcegraph/sourcegraph-extension-docs)

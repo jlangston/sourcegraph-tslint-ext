@@ -1,11 +1,130 @@
 import { Range, TextDocumentDecoration } from 'sourcegraph'
-import { LintResult, RuleFailure } from 'tslint'
 import { hsla, RED_HUE, YELLOW_HUE } from './colors'
 import { Settings } from './settings'
 
+interface LintResultResponse {
+    errorCount: number;
+    failures: FailuresItem[];
+    fixes: any[];
+    format: string;
+    output: string;
+    warningCount: number;
+}
+interface FailuresItem {
+    sourceFile: SourceFile;
+    failure: string;
+    ruleName: string;
+    fileName: string;
+    startPosition: StartPosition;
+    endPosition: EndPosition;
+    rawLines: string;
+    ruleSeverity: string;
+}
+interface SourceFile {
+    pos: number;
+    end: number;
+    flags: number;
+    kind: number;
+    text: string;
+    bindDiagnostics: any[];
+    languageVersion: number;
+    fileName: string;
+    languageVariant: number;
+    isDeclarationFile: boolean;
+    scriptKind: number;
+    pragmas: Pragmas;
+    referencedFiles: any[];
+    typeReferenceDirectives: any[];
+    libReferenceDirectives: any[];
+    amdDependencies: any[];
+    hasNoDefaultLib: boolean;
+    statements: StatementsItem[];
+    endOfFileToken: EndOfFileToken;
+    nodeCount: number;
+    identifierCount: number;
+    identifiers: Identifiers;
+    parseDiagnostics: any[];
+    lineMap: number[];
+    _children: ChildrenItem[];
+}
+interface Pragmas {
+}
+interface StatementsItem {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    kind: number;
+    expression: Expression;
+    modifierFlagsCache: number;
+    _children: ChildrenItem[];
+}
+interface Expression {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    kind?: number;
+    expression?: Expression;
+    arguments?: ArgumentsItem[];
+    _children?: ChildrenItem[];
+    name?: Name;
+    escapedText?: string;
+}
+interface Name {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    escapedText: string;
+}
+interface ChildrenItem {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    escapedText?: string;
+    kind?: number;
+    expression?: Expression;
+    name?: Name;
+    _children?: ChildrenItem[];
+    text?: string;
+    arguments?: ArgumentsItem[];
+    modifierFlagsCache?: number;
+}
+interface ArgumentsItem {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    kind: number;
+    text: string;
+}
+interface EndOfFileToken {
+    pos: number;
+    end: number;
+    flags: number;
+    parent: string;
+    kind: number;
+}
+interface Identifiers {
+}
+interface StartPosition {
+    position: number;
+    lineAndCharacter: LineAndCharacter;
+}
+interface LineAndCharacter {
+    line: number;
+    character: number;
+}
+interface EndPosition {
+    position: number;
+    lineAndCharacter: LineAndCharacter;
+}
+
 export function lintToDecorations(
     settings: Pick<Settings, 'tslint.decorations.lineLintIssues'>,
-    data: LintResult | undefined | null
+    data: LintResultResponse | undefined | null
 ): TextDocumentDecoration[] {
     console.log('lintResult', data);
     if (!data) {
@@ -16,23 +135,23 @@ export function lintToDecorations(
         if (failure === null) {
             continue
         }
-        const startPos = failure.getStartPosition()
-        const endPos = failure.getEndPosition()
+        const startPos = failure.startPosition
+        const endPos = failure.endPosition
         const line =
             (startPos
-                ? startPos.getLineAndCharacter().line
-                : endPos.getLineAndCharacter().line) - 1 // 0-indexed line
+                ? startPos.lineAndCharacter.line
+                : endPos.lineAndCharacter.line)  // 0-indexed line
         const decoration: TextDocumentDecoration = {
             range: new Range(
                 line,
-                startPos.getLineAndCharacter().character || 0,
+                startPos.lineAndCharacter.character || 0,
                 line,
-                endPos.getLineAndCharacter().character || 0
+                endPos.lineAndCharacter.character || 0
             ),
             isWholeLine: !startPos || !endPos,
         }
         if (settings['tslint.decorations.lineLintIssues']) {
-            decoration.backgroundColor = lineColor(failure, 0.7, 0.25)
+            // decoration.backgroundColor = lineColor(failure, 0.7, 0.25)
             decoration.after = {
                 backgroundColor: lineColor(failure, 0.7, 1),
                 color: lineColor(failure, 0.25, 1),
@@ -45,15 +164,15 @@ export function lintToDecorations(
 }
 
 function lineColor(
-    failure: RuleFailure,
+    failure: FailuresItem,
     lightness: number,
     alpha: number
 ): string {
     let hue: number
-    if (failure.getRuleSeverity() === 'error') {
+    if (failure.ruleSeverity === 'error') {
         hue = RED_HUE
         return hsla(hue, lightness, alpha)
-    } else if (failure.getRuleSeverity() === 'warning') {
+    } else if (failure.ruleSeverity === 'warning') {
         hue = YELLOW_HUE // partially covered
         return hsla(hue, lightness, alpha)
     }
@@ -61,13 +180,13 @@ function lineColor(
 }
 
 function lineText(
-    failure: RuleFailure
+    failure: FailuresItem
 ): { contentText?: string; hoverMessage?: string } {
     if (failure === null) {
         return {}
     }
     return {
-        contentText: ``,
-        hoverMessage: failure.getFailure()
+        contentText: `w`,
+        hoverMessage: failure.failure
     }
 }
