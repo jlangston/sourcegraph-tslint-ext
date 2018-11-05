@@ -19,25 +19,7 @@
           null,
           "json"
         ],
-        "title": "${config.tslint.decorations.lineLintIssues && \"Hide\" || \"Show\"} line coverage on file${get(context, `tslint.issueCount.${resource.uri}`) && ` (${get(context, `tslint.issueCount.${resource.uri}`)}% coverage)` || \"\"}",
-        "category": "tslint",
-        "actionItem": {
-          "label": "Coverage: ${get(context, `tslint.issueCount.${resource.uri}`)}%",
-          "description": "${config.tslint.decorations.lineLintIssues && \"Hide\" || \"Show\"} code coverage\n"
-        }
-      },
-      {
-        "id": "tslint.button.toggle",
-        "command": "updateConfiguration",
-        "commandArguments": [
-          [
-            "tslint.toggleLintIssueDisplayButton"
-          ],
-          "${!config.tslint.hideLintTotals}",
-          null,
-          "json"
-        ],
-        "title": "${config.tslint.hideCoverageButton && \"Show\" || \"Hide\"} coverage % button",
+        "title": "${config.tslint.decorations.lineLintIssues && \"Hide\" || \"Show\"}",
         "category": "tslint"
       }
     ],
@@ -53,13 +35,6 @@
         {
           "action": "tslint.decorations.toggleLintIssueDisplay",
           "when": "resource"
-        },
-        {
-          "action": "tslint.button.toggle",
-          "when": "resource && get(context, `tslint.issueCount.${resource.uri}`)"
-        },
-        {
-          "action": "tslint.help"
         }
       ],
       "help": [

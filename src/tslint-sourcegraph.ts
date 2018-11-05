@@ -5,39 +5,32 @@ import { getLinterConfiguration } from './loadConfig'
 import { resolveSettings, Settings } from './settings'
 
 export function activate(): void {
+    let tsLintConfig = null
+
     function afterActivate(): void {
-        const langServerAddress = sourcegraph.configuration
-            .get<Settings>()
-            .get('tslint.langserver.address')
+        const langServerAddress = sourcegraph.configuration.get<Settings>().get('tslint.langserver.address')
         if (!langServerAddress) {
             console.log('No tslint.langserver-address was set, exiting.')
             return
         }
 
         function activeEditor(): sourcegraph.CodeEditor | undefined {
-            return sourcegraph.app.activeWindow
-                ? sourcegraph.app.activeWindow.visibleViewComponents[0]
-                : undefined
+            return sourcegraph.app.activeWindow ? sourcegraph.app.activeWindow.visibleViewComponents[0] : undefined
         }
 
-        async function decorate(
-            editor: sourcegraph.CodeEditor | undefined = activeEditor()
-        ): Promise<void> {
+        async function decorate(editor: sourcegraph.CodeEditor | undefined = activeEditor()): Promise<void> {
             // TODO: Is there a better method to skip non typescript files and do TSX files get the same languageID ?
             if (!editor || editor.document.languageId !== 'typescript') {
                 return
             }
-            const settings = resolveSettings(
-                sourcegraph.configuration.get<Settings>().value
-            )
+            const settings = resolveSettings(sourcegraph.configuration.get<Settings>().value)
             try {
-                const configuration = await getLinterConfiguration(
-                    editor.document.uri
-                )
-                if (!configuration) {
+                if (!tsLintConfig) {
+                    tsLintConfig = await getLinterConfiguration(editor.document.uri)
+                }
+                if (!tsLintConfig) {
                     return
                 }
-
                 const request = new Request(langServerAddress as RequestInfo, {
                     method: 'POST',
                     mode: 'cors',
@@ -50,16 +43,13 @@ export function activate(): void {
                             text: editor.document.text,
                             uri: editor.document.uri,
                         },
-                        config: configuration,
+                        config: tsLintConfig,
                     }),
                 })
 
                 const resp = await fetch(request)
                 const lintResult = (await resp.json()) as LintResult
-                editor.setDecorations(
-                    null,
-                    lintToDecorations(settings, lintResult)
-                )
+                editor.setDecorations(null, lintToDecorations(settings, lintResult))
             } catch (err) {
                 console.error('Decoration error:', err)
             }
