@@ -52,7 +52,8 @@ export function activate(): void {
 
                 const resp = await fetch(request)
                 const lintResult = (await resp.json()) as LintResultResponse
-                editor.setDecorations(null, lintToDecorations(settings, lintResult))
+                const decorations = settings['tslint.decorations.showLintIssues'] ? lintToDecorations(lintResult) : [];
+                editor.setDecorations(null, decorations)
                 // Update context to display file issue counts in toolbar
                 const context: {
                     [key: string]: string | number | boolean | null

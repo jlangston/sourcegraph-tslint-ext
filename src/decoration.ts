@@ -1,5 +1,4 @@
 import { Range, TextDocumentDecoration } from 'sourcegraph'
-import { Settings } from './settings'
 
 export interface LintResultResponse {
     errorCount: number
@@ -123,7 +122,6 @@ interface EndPosition {
  * Translates lintResult to decorations for file
  */
 export function lintToDecorations(
-    settings: Pick<Settings, 'tslint.decorations.showLintIssues'>,
     data: LintResultResponse | undefined | null
 ): TextDocumentDecoration[] {
     if (!data) {
@@ -146,12 +144,10 @@ export function lintToDecorations(
             ),
             isWholeLine: !startPos || !endPos,
         }
-        if (settings['tslint.decorations.showLintIssues']) {
-            decoration.backgroundColor = issueColor(failure, 0.7, 0.15)
-            decoration.after = {
-                color: issueColor(failure, 0.5, 1),
-                ...issueText(failure),
-            }
+        decoration.backgroundColor = issueColor(failure, 0.7, 0.15)
+        decoration.after = {
+            color: issueColor(failure, 0.5, 1),
+            ...issueText(failure),
         }
         decorations.push(decoration)
     }
