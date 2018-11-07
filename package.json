@@ -19,20 +19,53 @@
           null,
           "json"
         ],
-        "title": "${config.tslint.decorations.showLintIssues && \"Hide\" || \"Show\"}",
+        "title": "${config.tslint.decorations.showLintIssues && \"Hide\" || \"Show\"} (${get(context, `tslint.issueCount`)} TSLint issue count )`",
+        "category": "tslint",
+        "actionItem": {
+          "label": "TSLint${get(context, 'tslint.issueCount') !== undefined && `: ${get(context, 'tslint.issueCount')} ⚠` || ''}️",
+          "description": "${config.tslint.decorations.showLintIssues && \"Hide\" || \"Show\"}"
+        }
+      },
+      {
+        "id": "tslint.button.toggle",
+        "command": "updateConfiguration",
+        "commandArguments": [
+          [
+            "tslint.showIssueCount"
+          ],
+          "${!config.tslint.showIssueCount}",
+          null,
+          "json"
+        ],
+        "title": "${config.tslint.showIssueCount && \"Show\" || \"Hide\"} TSLint Issue Count",
+        "category": "tslint"
+      },
+      {
+        "id": "tslint.setConfigPath",
+        "command": "tslint.setconfigPath",
+        "title": "Set TSLint config file path for repo",
         "category": "tslint"
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "action": "tslint.decorations.toggleLintIssueDisplay",
+          "when": "resource && config.tslint.showIssueCount"
+        }
+      ],
       "commandPalette": [
         {
           "action": "tslint.decorations.toggleLintIssueDisplay",
           "when": "resource"
-        }
-      ],
-      "help": [
+        },
         {
-          "action": "tslint.help"
+          "action": "tslint.button.toggle",
+          "when": "resource && get(context, `tslint.issueCount`)"
+        },
+        {
+          "action": "tslint.setConfigPath",
+          "when": "resource"
         }
       ]
     },
@@ -40,7 +73,12 @@
       "title": "tslint settings",
       "properties": {
         "tslint.decorations.showLintIssues": {
-          "description": "Whether to decorate each line with a background color based on its coverage.",
+          "description": "Whether to decorate each line with a with a color and tool tip markers based on reported Tslint issues.",
+          "type": "boolean",
+          "default": false
+        },
+        "tslint.showIssueCount": {
+          "description": "Whether to hide the file lint issue count in the toolbar (in a button labeled \"TSLint: %N ⚠️\").",
           "type": "boolean",
           "default": true
         }
