@@ -1,8 +1,11 @@
 import * as sourcegraph from 'sourcegraph'
 import { IConfigurationFile } from 'tslint/lib/configuration'
 
-export const getLinterConfiguration = async (uri: string): Promise<IConfigurationFile | null> => {
-    const linterConfigStr = await loadLinterConfig(uri)
+/**
+ * loads TSLint configuration from repo at given uri
+ */
+export async function getLinterConfiguration(uri: string, configPath: string): Promise<IConfigurationFile | null> {
+    const linterConfigStr = await loadLinterConfig(uri, configPath)
     if (linterConfigStr === null) {
         return null
     }
@@ -10,34 +13,40 @@ export const getLinterConfiguration = async (uri: string): Promise<IConfiguratio
         return JSON.parse(linterConfigStr)
     } catch (e) {
         console.error(e)
-        throw new Error('Invalid tsconfig.json')
+        throw new Error('Invalid tsconfig.json path')
     }
 }
 
+/**
+ *  extracts repo name from repo uri
+ */
 function repoFromUri(uri: string): string | undefined {
     const url = new URL(uri)
     if (url.protocol === 'git:') {
         return (url.host + url.pathname).replace(/^\/*/, '').toLowerCase()
     }
-    throw new Error(`unrecognized URI: ${JSON.stringify(uri)} (URI schemes: git)`)
+    throw new Error(`unrecognized URI Protocol: ${JSON.stringify(uri)}`)
 }
 
-async function loadLinterConfig(uri: string): Promise<string | null> {
+/**
+ *  Fetches TSlint config file from repo via GraphQL query
+ */
+async function loadLinterConfig(uri: string, configFile: string): Promise<string | null> {
     const repo = repoFromUri(uri)
     const { data, errors } = await sourcegraph.commands.executeCommand(
         'queryGraphQL',
         `
-        query LoadLinterConfig($repo: String!) {
+        query LoadLinterConfig($repo: String!, $configFile: String!) {
             repository(name: $repo) {
               commit(rev: "HEAD") {
-                file(path: "tslint.json") {
+                file(path: $configFile) {
                   content
                 }
               }
             }
           }
         `,
-        { repo }
+        { repo, configFile}
     )
     if (errors && errors.length > 0) {
         throw new Error(errors.join('\n'))

@@ -2,7 +2,7 @@ module.exports = function () {
 
   return {
     files: [
-      'tsconfig.json', // <--
+      'tsconfig.json',
       'src/**/*.ts',
       '!src/**/*.test.ts'
       ],

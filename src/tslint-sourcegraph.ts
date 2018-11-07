@@ -1,32 +1,35 @@
 import * as sourcegraph from 'sourcegraph'
-import { LintResult } from 'tslint'
-import { lintToDecorations } from './decoration'
+import { IConfigurationFile } from 'tslint/lib/configuration'
+import { LintResultResponse, lintToDecorations } from './decoration'
 import { getLinterConfiguration } from './loadConfig'
 import { resolveSettings, Settings } from './settings'
 
 export function activate(): void {
-    let tsLintConfig = null
+    let tsLintConfig: IConfigurationFile | null = null
 
     function afterActivate(): void {
-        const langServerAddress = sourcegraph.configuration.get<Settings>().get('tslint.langserver.address')
+        const settings = resolveSettings(sourcegraph.configuration.get<Settings>().value)
+
+        const langServerAddress = settings['tslint.langserver.address']
         if (!langServerAddress) {
-            console.log('No tslint.langserver-address was set, exiting.')
+            console.log('No tslint.langserver.address was set, exiting.')
             return
         }
+
+        const tslintConfigPath = settings['tslint.config.path']
 
         function activeEditor(): sourcegraph.CodeEditor | undefined {
             return sourcegraph.app.activeWindow ? sourcegraph.app.activeWindow.visibleViewComponents[0] : undefined
         }
 
         async function decorate(editor: sourcegraph.CodeEditor | undefined = activeEditor()): Promise<void> {
-            // TODO: Is there a better method to skip non typescript files and do TSX files get the same languageID ?
-            if (!editor || editor.document.languageId !== 'typescript') {
+            // TODO: Is there a better method to skip non typescript/javascript files ?
+            if (!editor || !['typescript', 'javascript'].includes(editor.document.languageId)) {
                 return
             }
-            const settings = resolveSettings(sourcegraph.configuration.get<Settings>().value)
             try {
                 if (!tsLintConfig) {
-                    tsLintConfig = await getLinterConfiguration(editor.document.uri)
+                    tsLintConfig = await getLinterConfiguration(editor.document.uri, tslintConfigPath)
                 }
                 if (!tsLintConfig) {
                     return
@@ -48,10 +51,18 @@ export function activate(): void {
                 })
 
                 const resp = await fetch(request)
-                const lintResult = (await resp.json()) as LintResult
+                const lintResult = (await resp.json()) as LintResultResponse
                 editor.setDecorations(null, lintToDecorations(settings, lintResult))
+                // Update context to display file issue counts in toolbar
+                const context: {
+                    [key: string]: string | number | boolean | null
+                } = {}
+                if (lintResult) {
+                    context['tslint.issueCount'] = Array.isArray(lintResult.failures) ? lintResult.failures.length : 0;
+                }
+                sourcegraph.internal.updateContext(context)
             } catch (err) {
-                console.error('Decoration error:', err)
+                console.error('Decoration error:', JSON.stringify(err))
             }
         }
         sourcegraph.configuration.subscribe(() => decorate())

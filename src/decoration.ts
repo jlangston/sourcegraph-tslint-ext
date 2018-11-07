@@ -1,7 +1,7 @@
 import { Range, TextDocumentDecoration } from 'sourcegraph'
 import { Settings } from './settings'
 
-interface LintResultResponse {
+export interface LintResultResponse {
     errorCount: number
     failures: FailuresItem[]
     fixes: any[]
@@ -9,7 +9,7 @@ interface LintResultResponse {
     output: string
     warningCount: number
 }
-interface FailuresItem {
+export interface FailuresItem {
     sourceFile: SourceFile
     failure: string
     ruleName: string
@@ -119,8 +119,11 @@ interface EndPosition {
     lineAndCharacter: LineAndCharacter
 }
 
+/**
+ * Translates lintResult to decorations for file
+ */
 export function lintToDecorations(
-    settings: Pick<Settings, 'tslint.decorations.lineLintIssues'>,
+    settings: Pick<Settings, 'tslint.decorations.showLintIssues'>,
     data: LintResultResponse | undefined | null
 ): TextDocumentDecoration[] {
     if (!data) {
@@ -143,11 +146,11 @@ export function lintToDecorations(
             ),
             isWholeLine: !startPos || !endPos,
         }
-        if (settings['tslint.decorations.lineLintIssues']) {
+        if (settings['tslint.decorations.showLintIssues']) {
+            decoration.backgroundColor = issueColor(failure, 0.7, 0.15)
             decoration.after = {
-                backgroundColor: issueColor(failure, 0.4, 1),
-                color: 'black',
-                ...lineText(failure),
+                color: issueColor(failure, 0.5, 1),
+                ...issueText(failure),
             }
         }
         decorations.push(decoration)
@@ -155,31 +158,37 @@ export function lintToDecorations(
     return decorations
 }
 
-const RED_HUE = 0
-const YELLOW_HUE = 60
-
-export function hsla(hue: number | string, lightness: number, alpha: number): string {
+/**
+ * builds hsla color value from inputs
+ */
+export function hsla(hue: number, lightness: number, alpha: number): string {
     return `hsla(${hue}, 100%, ${lightness * 100}%, ${alpha})`
 }
 
+/**
+ * Gets lint result failure color based on failure severity
+ */
 function issueColor(failure: FailuresItem, lightness: number, alpha: number): string {
     let hue: number
     if (failure.ruleSeverity === 'error') {
-        hue = RED_HUE
+        hue = 0 // redish
         return hsla(hue, lightness, alpha)
     } else if (failure.ruleSeverity === 'warning') {
-        hue = YELLOW_HUE
+        hue = 60 // yellowish
         return hsla(hue, lightness, alpha)
     }
     return ''
 }
 
-function lineText(failure: FailuresItem): { contentText?: string; hoverMessage?: string } {
+/**
+ * Builds decoration tooltip icon content
+ */
+function issueText(failure: FailuresItem): { contentText?: string; hoverMessage?: string } {
     if (failure === null) {
         return {}
     }
     return {
-        contentText: failure.ruleSeverity === 'error' ? ' 🚨 ' : ' ⚠️ ',
+        contentText: failure.ruleSeverity === 'error' ? '🚨' : '⚠️',
         hoverMessage: failure.failure,
     }
 }

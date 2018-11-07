@@ -13,24 +13,17 @@
         "command": "updateConfiguration",
         "commandArguments": [
           [
-            "tslint.decorations.lineLintIssues"
+            "tslint.decorations.showLintIssues"
           ],
-          "${!config.tslint.decorations.lineLintIssues}",
+          "${!config.tslint.decorations.showLintIssues}",
           null,
           "json"
         ],
-        "title": "${config.tslint.decorations.lineLintIssues && \"Hide\" || \"Show\"}",
+        "title": "${config.tslint.decorations.showLintIssues && \"Hide\" || \"Show\"}",
         "category": "tslint"
       }
     ],
     "menus": {
-      "editor/title": [
-        {
-          "action": "tslint.decorations.toggleLintIssueDisplay",
-          "alt": "tslint.link.file",
-          "when": "resource && !config.tslint.hideLintTotals && get(context, `tslint.issueCount.${resource.uri}`)"
-        }
-      ],
       "commandPalette": [
         {
           "action": "tslint.decorations.toggleLintIssueDisplay",
@@ -46,15 +39,10 @@
     "configuration": {
       "title": "tslint settings",
       "properties": {
-        "tslint.decorations.lineLintIssues": {
+        "tslint.decorations.showLintIssues": {
           "description": "Whether to decorate each line with a background color based on its coverage.",
           "type": "boolean",
           "default": true
-        },
-        "tslint.": {
-          "description": "Whether to hide the file coverage ratio item in the toolbar (in a button labeled \"Coverage: N%\").",
-          "type": "boolean",
-          "default": false
         }
       }
     }

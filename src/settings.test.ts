@@ -2,33 +2,22 @@ import { resolveSettings, Settings } from './settings'
 
 describe('Settings', () => {
     describe('decorations', () => {
-        it('applies defaults when not set', () =>
-            expect(
-                resolveSettings({})['tslint.decorations.lineLintIssues']
-            ).toEqual(false))
-
-        it('respects the hide property', () =>
-            expect(
-                resolveSettings({
-                    'tslint.toggleLintIssueDisplay': true,
-                    'tslint.decorations.lineLintIssues': true,
-                } as Settings)['tslint.toggleLintIssueDisplay']
-            ).toEqual(true))
-
-        it('respects the other properties', () =>
-            expect(
-                resolveSettings({ 'tslint.decorations.lineLintIssues': false })
-            ).toStrictEqual({
-                'tslint.decorations.lineLintIssues': false,
-                'tslint.toggleLintIssueDisplay': true,
-                'tslint.langserver-address': 'ws://localhost:1234',
+        it('applies default visibility', () =>
+            expect(resolveSettings({})['tslint.decorations.showLintIssues']).toEqual(false))
+        it('allows overriding properties', () =>
+            expect(resolveSettings({ 'tslint.decorations.showLintIssues': false })).toStrictEqual({
+                'tslint.showIssueCount': false,
+                'tslint.decorations.showLintIssues': false,
+                'tslint.langserver.address': 'http://localhost:2345',
+                'tslint.config.path': 'tslint.json',
             } as Settings))
 
         it('applies defaults for the other properties', () =>
             expect(resolveSettings({})).toStrictEqual({
-                'tslint.decorations.lineLintIssues': false,
-                'tslint.toggleLintIssueDisplay': true,
-                'tslint.langserver-address': 'ws://localhost:1234',
+                'tslint.showIssueCount': false,
+                'tslint.decorations.showLintIssues': false,
+                'tslint.langserver.address': 'http://localhost:2345',
+                'tslint.config.path': 'tslint.json',
             } as Settings))
     })
 })
