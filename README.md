@@ -1,6 +1,6 @@
 # TSLint Integration
 
-![demo](./tslint-sourcegraph.png)
+![demo](https://raw.githubusercontent.com/jlangston/sourcegraph-tslint-ext/master/tslint-sourcegraph.png)
 Shows Tslint warnings and errors in Sourcegraph.
 
 You'll need the server component running as well [TSLint extension server](https://github.com/jlangston/tslint-ws-langserver)
