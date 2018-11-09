@@ -9,7 +9,6 @@ export interface LintResultResponse {
     warningCount: number
 }
 export interface FailuresItem {
-    sourceFile: SourceFile
     failure: string
     ruleName: string
     fileName: string
@@ -18,93 +17,6 @@ export interface FailuresItem {
     rawLines: string
     ruleSeverity: string
 }
-interface SourceFile {
-    pos: number
-    end: number
-    flags: number
-    kind: number
-    text: string
-    bindDiagnostics: any[]
-    languageVersion: number
-    fileName: string
-    languageVariant: number
-    isDeclarationFile: boolean
-    scriptKind: number
-    pragmas: Pragmas
-    referencedFiles: any[]
-    typeReferenceDirectives: any[]
-    libReferenceDirectives: any[]
-    amdDependencies: any[]
-    hasNoDefaultLib: boolean
-    statements: StatementsItem[]
-    endOfFileToken: EndOfFileToken
-    nodeCount: number
-    identifierCount: number
-    identifiers: Identifiers
-    parseDiagnostics: any[]
-    lineMap: number[]
-    _children: ChildrenItem[]
-}
-interface Pragmas {}
-interface StatementsItem {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    kind: number
-    expression: Expression
-    modifierFlagsCache: number
-    _children: ChildrenItem[]
-}
-interface Expression {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    kind?: number
-    expression?: Expression
-    arguments?: ArgumentsItem[]
-    _children?: ChildrenItem[]
-    name?: Name
-    escapedText?: string
-}
-interface Name {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    escapedText: string
-}
-interface ChildrenItem {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    escapedText?: string
-    kind?: number
-    expression?: Expression
-    name?: Name
-    _children?: ChildrenItem[]
-    text?: string
-    arguments?: ArgumentsItem[]
-    modifierFlagsCache?: number
-}
-interface ArgumentsItem {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    kind: number
-    text: string
-}
-interface EndOfFileToken {
-    pos: number
-    end: number
-    flags: number
-    parent: string
-    kind: number
-}
-interface Identifiers {}
 interface StartPosition {
     position: number
     lineAndCharacter: LineAndCharacter
