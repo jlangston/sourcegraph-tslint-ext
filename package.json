@@ -4,7 +4,8 @@
   "description": "WIP: Shows Tslint warnings and errors in Sourcegraph",
   "publisher": "jlangston",
   "activationEvents": [
-    "*"
+    "onLanguage:typescript",
+    "onLanguage:javascript"
   ],
   "contributes": {
     "actions": [
